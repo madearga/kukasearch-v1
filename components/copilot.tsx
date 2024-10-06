@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { useAuth } from '@clerk/nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { PartialInquiry } from '@/lib/schema/inquiry'
 import { Input } from './ui/input'
 import { Checkbox } from './ui/checkbox'
@@ -33,6 +35,13 @@ export const Copilot: React.FC<CopilotProps> = ({ inquiry }: CopilotProps) => {
   const { submit } = useActions()
   const { isGenerating, setIsGenerating } = useAppState()
   const [object, setObject] = useState<PartialInquiry>()
+
+  const { getToken } = useAuth()
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!
+  )
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value)
@@ -83,6 +92,9 @@ export const Copilot: React.FC<CopilotProps> = ({ inquiry }: CopilotProps) => {
     setIsGenerating(true)
     setCompleted(true)
     setSkipped(skip || false)
+
+    const token = await getToken({ template: 'supabase' })
+    supabase.auth.setAuth(token)
 
     const formData = skip
       ? undefined
